@@ -133,6 +133,8 @@ Enables ztd of responses for the specified MIME types in addition to "text/html"
 
 Sets the number and size of buffers used to compress a response. By default, the buffer size is equal to one memory page. This is either 4K or 8K, depending on a platform.
 
+### zstd_bypass
+
 **Syntax:** *zstd_bypass string ...;*  
 **Default:** *—*  
 **Context:** *http, server, location*
