@@ -13,8 +13,10 @@ zstd-nginx-module - Nginx module for the [Zstandard compression](https://faceboo
     * [zstd](#zstd)
     * [zstd_comp_level](#zstd_comp_level)
     * [zstd_min_length](#zstd_min_length)
+    * [zstd_max_length](#zstd_max_length)
     * [zstd_types](#zstd_types)
     * [zstd_buffers](#zstd_buffers)
+    * [zstd_bypass](#zstd_bypass)
   * [ngx_http_zstd_static_module](#ngx_http_zstd_static_module)
     * [zstd_static](#zstd_static)
 * [Variables](#variables)
@@ -107,6 +109,14 @@ Sets a zstd compression level of a response. Acceptable values are in the range 
 
 Sets the minimum length of a response that will be compressed by zstd. The length is determined only from the "Content-Length" response header field.
 
+### zstd_max_length
+
+**Syntax:** *zstd_max_length length;*  
+**Default:** *zstd_max_length 0;*  
+**Context:** *http, server, location*
+
+Sets the maximum length of a response that will be compressed by zstd. The length is determined only from the "Content-Length" response header field. A value of 0 means no upper limit.
+
 ### zstd_types
 
 **Syntax:** *zstd_types mime-type ...;*  
@@ -122,6 +132,12 @@ Enables ztd of responses for the specified MIME types in addition to "text/html"
 **Context:** *http, server, location*
 
 Sets the number and size of buffers used to compress a response. By default, the buffer size is equal to one memory page. This is either 4K or 8K, depending on a platform.
+
+**Syntax:** *zstd_bypass string ...;*  
+**Default:** *—*  
+**Context:** *http, server, location*
+
+Defines conditions under which the response will be compressed by zstd. If at least one value of the string parameters is not empty and is not equal to “0” then the response will not be compressed by zstd.
 
 ## ngx_http_zstd_static_module
 
