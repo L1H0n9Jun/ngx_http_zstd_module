@@ -11,10 +11,13 @@ if [ -n "$ZSTD_INC" -a -n "$ZSTD_LIB" ]; then
     ngx_feature_path=$ZSTD_INC
 
     # we try the static shared library firstly
-    ngx_zstd_opt_I="-I$ZSTD_INC -DZSTD_STATIC_LINKING_ONLY"
+    ngx_zstd_opt_I="$ZSTD_INC"
     ngx_zstd_opt_L="$ZSTD_LIB/libzstd.a"
+    
+    if [ -f "$ngx_zstd_opt_L" ]; then
+        CFLAGS="$CFLAGS -DZSTD_STATIC_LINKING_ONLY"
 
-    if [ ! -f "$ngx_zstd_opt_L" ]; then
+    else
         # then try the dynamic shared library
         ngx_feature="ZStandard dynamic library in $ZSTD_INC and $ZSTD_LIB"
         ngx_zstd_opt_L="-L$ZSTD_LIB -lzstd -Wl,-rpath=$ZSTD_LIB"
@@ -30,7 +33,6 @@ END
 else
     # auto-discovery
     ngx_feature="ZStandard static library"
-    ngx_zstd_opt_I="-DZSTD_STATIC_LINKING_ONLY"
     ngx_zstd_opt_L="-l:libzstd.a"
 
     # still we consider the static library firstly
@@ -45,8 +47,10 @@ else
     CC_TEST_FLAGS=$SAVED_CC_TAST_FLAGS
     NGX_TEST_LD_OPT=$SAVED_NGX_TEST_LD_OPT
 
-    if [ $ngx_found = no ]; then
+    if [ ! $ngx_found = no ]; then
+        CFLAGS="$CFLAGS -DZSTD_STATIC_LINKING_ONLY"
 
+    else
         ngx_feature="ZStandard dynamic library"
         ngx_zstd_opt_L="-lzstd"
         SAVED_CC_TAST_FLAGS=$CC_TEST_FLAGS
@@ -75,16 +79,14 @@ END
     # TODO we need more tries for the different OS port.
 fi
 
-NGX_LD_OPT="$ngx_zstd_opt_L $NGX_LD_OPT"
-
 HTTP_ZSTD_SRCS="$ngx_addon_dir/filter/ngx_http_zstd_filter_module.c"
 
-ngx_addon_name=ngx_http_zstd_filter_module
 ngx_module_type=HTTP_FILTER
+ngx_addon_name=ngx_http_zstd_filter_module
 ngx_module_name=ngx_http_zstd_filter_module
 ngx_module_incs="$ngx_zstd_opt_I"
-ngx_module_srcs=$HTTP_ZSTD_SRCS
-ngx_module_libs=$NGX_LD_OPT
+ngx_module_srcs="$HTTP_ZSTD_SRCS"
+ngx_module_libs="$ngx_zstd_opt_L"
 ngx_module_order="$ngx_module_name \
                   ngx_pagespeed \
                   ngx_http_postpone_filter_module \
@@ -120,4 +122,3 @@ if [ "$ngx_module_link" != DYNAMIC ]; then
                          | sed "s/$ngx_module_name//" \
                          | sed "s/$next/$next $ngx_module_name/"`
 fi
-
